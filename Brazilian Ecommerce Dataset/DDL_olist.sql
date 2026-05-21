@@ -45,11 +45,7 @@ create table olist_products(
 	product_weight_g int,
 	product_length_cm int,
 	product_height_cm int,
-	product_width_cm int,
-	CONSTRAINT fk_products_category_name
-        FOREIGN KEY (product_category_name) 
-        REFERENCES olist_product_category_name_translation(product_category_name)
-        on delete set null
+	product_width_cm int
 );
 
 drop table if exists olist_orders;
@@ -107,8 +103,8 @@ payment_type varchar(11) not null check (payment_type in (
 'not_defined'
 
 )),
-payment_installments int not null CHECK (payment_installments >= 1),
-payment_value decimal(10,2) not null CHECK (payment_value >= 1),
+payment_installments int not null CHECK (payment_installments >= 0),
+payment_value decimal(10,2) not null CHECK (payment_value >= 0),
 PRIMARY KEY (order_id, payment_sequential),
 CONSTRAINT fk_payment_order
         FOREIGN KEY (order_id) 
@@ -162,3 +158,22 @@ CREATE INDEX idx_payments_type ON olist_order_payments(payment_type);
 
 CREATE INDEX idx_reviews_score ON olist_order_reviews(review_score);
 CREATE INDEX idx_reviews_creation_date ON olist_order_reviews(review_creation_date);
+
+
+ALTER TABLE olist_customers
+DROP CONSTRAINT olist_customers_customer_unique_id_key;
+
+ALTER TABLE olist_products
+    ALTER COLUMN product_weight_g       TYPE DECIMAL(10,2),
+    ALTER COLUMN product_length_cm      TYPE DECIMAL(10,2),
+    ALTER COLUMN product_height_cm      TYPE DECIMAL(10,2),
+    ALTER COLUMN product_width_cm       TYPE DECIMAL(10,2),
+    ALTER COLUMN product_name_length       TYPE DECIMAL(10,2),
+    ALTER COLUMN product_description_length TYPE DECIMAL(10,2),
+    ALTER column product_photos_qty TYPE DECIMAL(10,2);
+	
+ALTER TABLE olist_products 
+DROP CONSTRAINT fk_products_category_name;
+
+ALTER TABLE olist_orders 
+DROP CONSTRAINT orders_order_status_check;
