@@ -1,0 +1,35 @@
+# Environment & secrets
+.env
+*.env
+config/smtp_config.py
+
+# Airflow runtime files
+logs/
+airflow.db
+airflow.cfg
+airflow-webserver.pid
+standalone_admin_password.txt
+
+# Python
+__pycache__/
+*.py[cod]
+*.pyc
+.Python
+*.egg-info/
+dist/
+build/
+.venv/
+venv/
+
+# Data files (usually too large for git)
+data/files/
+data/archive/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# IDE
+.vscode/
+.idea/
+*.iml
