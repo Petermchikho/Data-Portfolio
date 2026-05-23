@@ -170,3 +170,5 @@ select
 from customer_metrics 
 group by customer_type 
 
+-- 10. What is the running total GMV by month, and what is the month-over-month percentage growth rate?
+
