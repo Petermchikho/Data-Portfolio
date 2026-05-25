@@ -171,4 +171,42 @@ from customer_metrics
 group by customer_type 
 
 -- 10. What is the running total GMV by month, and what is the month-over-month percentage growth rate?
+--select * from olist_order_items ooi limit 5;
+--select * from olist_orders oo limit 5;
+
+with total_month_gmv as(
+select 
+date_trunc('month',oo.order_purchase_timestamp ) as month,
+sum(ooi.price + ooi.freight_value ) as gmv
+from olist_orders oo left join olist_order_items ooi on oo.order_id = ooi.order_id
+WHERE oo.order_status = 'delivered'
+group by "month" 
+)
+select 
+"month",
+gmv,
+sum(gmv) over(order by "month") as running_total,
+lag(gmv,1,0) over(order by "month" ) as previous_month_gmv,
+round(
+        (
+            (gmv - lag(gmv) over (order by  month))
+            /
+            nullif(lag(gmv) over  (order by month), 0)
+        ) * 100,
+        2
+    ) as month_over_month_growth_percentage
+from total_month_gmv;
+
+
+--select 
+--*
+--from olist_orders oo left join olist_order_items ooi on oo.order_id = ooi.order_id
+--where oo.order_purchase_timestamp > '2018-10-01 00:00:00.000'
+--
+--select 
+--distinct(oo.order_status )
+--from olist_orders oo left join olist_order_items ooi on oo.order_id = ooi.order_id
+
+
+
 
