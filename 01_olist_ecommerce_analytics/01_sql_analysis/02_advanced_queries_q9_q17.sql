@@ -106,3 +106,79 @@ FROM seller_orders
 GROUP BY seller_id
 HAVING COUNT(*) >= 20
 ORDER BY avg_delay_days DESC;
+
+--12. By monthly acquisition cohort, what percentage of customers placed a
+-- second order within 90 days of their first purchase?
+
+WITH orders_customers AS (
+    SELECT
+        oc.customer_unique_id,
+        o.order_id,
+        o.order_purchase_timestamp,
+        ROW_NUMBER() OVER (
+            PARTITION BY oc.customer_unique_id
+            ORDER BY o.order_purchase_timestamp
+        ) AS purchase_number
+    FROM olist_orders o
+    JOIN olist_customers oc
+        ON o.customer_id = oc.customer_id
+),
+first_second_orders AS (
+    SELECT
+        customer_unique_id,
+        MAX(CASE WHEN purchase_number = 1 THEN order_purchase_timestamp END) AS first_order_date,
+        MAX(CASE WHEN purchase_number = 2 THEN order_purchase_timestamp END) AS second_order_date
+    FROM orders_customers
+    WHERE purchase_number IN (1, 2)
+    GROUP BY customer_unique_id
+)
+SELECT
+    customer_unique_id,
+    first_order_date,
+    second_order_date,
+    second_order_date - first_order_date AS time_between_orders,
+    EXTRACT(DAY FROM (second_order_date - first_order_date)) AS days_between_orders
+FROM first_second_orders
+WHERE second_order_date IS NOT NULL
+ORDER BY days_between_orders;
+
+--13. How does average review score vary across delivery delay buckets — very early
+-- early, on time, slightly late, moderately late, and very late?
+
+with delivery_delay as (
+	select 
+		oo.order_id ,
+		oo.order_estimated_delivery_date,
+		oo.order_delivered_customer_date,
+		(date(oo.order_estimated_delivery_date) - date(oo.order_delivered_customer_date) ) as delivery_difference
+	from olist_orders oo 
+	where oo.order_status ='delivered'
+),delivery_delay_buckets as(
+select 
+order_id ,
+delivery_difference,
+case 
+	WHEN delivery_difference > 5 THEN 'very early'
+    WHEN delivery_difference > 0 THEN 'early'
+    WHEN delivery_difference = 0 THEN 'on time'
+    WHEN delivery_difference >= -2 THEN 'slightly late'
+    WHEN delivery_difference >= -5 THEN 'moderately late'
+    ELSE 'very late'
+end as delay_bucket
+
+from delivery_delay 
+),order_reviews as (
+select 
+ddb.order_id ,
+ddb.delivery_difference,
+ddb.delay_bucket,
+oor.review_score 
+from delivery_delay_buckets ddb  left join olist_order_reviews oor on oor.order_id = ddb.order_id 
+)
+select 
+delay_bucket,
+ROUND(AVG(review_score ),2) as average_review
+from order_reviews
+group by delay_bucket
+
+-- late delivery negatively affects reviews
