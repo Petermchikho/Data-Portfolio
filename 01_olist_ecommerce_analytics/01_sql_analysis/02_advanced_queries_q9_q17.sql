@@ -213,3 +213,32 @@ from seller_aggregates
 
 -- 15.Which pairs of products are most frequently purchased within the same
 -- order, and how often does each pairing occur?
+
+select * from olist_order_items ooi limit 5;
+
+with together_products as(
+	SELECT
+	    oi1.product_id AS product_1,
+	    oi2.product_id AS product_2,
+	    COUNT(*) AS times_together
+	FROM olist_order_items oi1
+	JOIN olist_order_items oi2
+	    ON oi1.order_id = oi2.order_id
+	   AND oi1.product_id < oi2.product_id
+	GROUP BY
+	    oi1.product_id,
+	    oi2.product_id
+	ORDER BY times_together DESC
+)SELECT
+    tp.product_1,
+    p1.product_category_name  AS product_1_name,
+    tp.product_2,
+    p2.product_category_name  AS product_2_name,
+    tp.times_together
+FROM together_products tp
+LEFT JOIN olist_products p1
+    ON tp.product_1 = p1.product_id
+LEFT JOIN olist_products p2
+    ON tp.product_2 = p2.product_id
+ORDER BY tp.times_together DESC;
+
