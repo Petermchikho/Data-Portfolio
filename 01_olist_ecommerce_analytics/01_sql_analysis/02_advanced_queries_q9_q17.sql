@@ -182,3 +182,34 @@ from order_reviews
 group by delay_bucket
 
 -- late delivery negatively affects reviews
+
+
+-- 14. For all qualifying sellers, assign a revenue rank, a review score rank, and classify each into revenue and
+-- review quartiles
+
+with order_items_reviews as(
+select  *
+    from  olist_order_items ooi
+    left  join  olist_order_reviews oor
+        on  ooi.order_id = oor.order_id
+     where oor.review_score is not null
+) ,seller_aggregates as (
+select 
+	seller_id,
+	avg(review_score ) as average_review_score,
+	sum(price) as total_revenue
+from order_items_reviews 
+group by seller_id 
+)
+select 
+seller_id,
+average_review_score,
+dense_rank() over(order by average_review_score desc) as review_score_rank,
+ntile(4) over(order by average_review_score desc ) as review_score_quartile,
+total_revenue,
+dense_rank() over(order by total_revenue desc) as total_revenue_rank,
+ntile(4) over(order by total_revenue desc) as total_revenue_quartile
+from seller_aggregates
+
+-- 15.Which pairs of products are most frequently purchased within the same
+-- order, and how often does each pairing occur?
