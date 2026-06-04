@@ -293,3 +293,34 @@ order by oop.order_id;
 
 -- 17. By product category and customer state, what is the average freight
 -- value as a percentage of product price for orders with sufficient volume?
+
+with order_items_categories_customer as (
+	select 
+		ooi.order_id,
+		ooi.product_id,
+		op.product_category_name,
+		ooi.price,
+		ooi.freight_value,
+		oo.customer_id,
+		oc.customer_state 
+	from olist_order_items ooi 
+	left join olist_products op 
+	on ooi.product_id = op.product_id 
+	left join olist_orders oo 
+	on ooi.order_id = oo.order_id
+	left join olist_customers oc on oo.customer_id =oc.customer_id 
+	where oo.order_status in ('delivered','shipped','invoiced')
+), freight_as_percentage_of_price as(
+select oicc.* , ((oicc.freight_value * 100)/nullif(oicc.price,0)) as freight_as_percentage from order_items_categories_customer oicc
+)
+select 
+	product_category_name,
+	customer_state,
+	round(AVG(freight_as_percentage),2) as average_freight_as_percentage_of_price,
+	COUNT(DISTINCT order_id) AS total_orders
+from freight_as_percentage_of_price
+group by product_category_name,customer_state
+HAVING COUNT(DISTINCT order_id) >= 30
+ORDER BY average_freight_as_percentage_of_price DESC;
+
+
