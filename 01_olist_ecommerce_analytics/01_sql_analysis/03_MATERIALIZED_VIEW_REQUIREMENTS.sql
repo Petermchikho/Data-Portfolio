@@ -1,4 +1,8 @@
 -- MV1 — Daily Order Summary
+-- PURPOSE:
+-- Pre-aggregates order count, unique customer count, product revenue, freight
+-- revenue, and total GMV by day and order status. Serves daily KPI dashboards
+-- and Airflow sink tasks.
 
 DROP MATERIALIZED VIEW IF EXISTS mv_daily_order_summary;
 create materialized view mv_daily_order_summary as
@@ -31,3 +35,10 @@ ON mv_daily_order_summary(order_status, order_date);
 
 
 select * from mv_daily_order_summary
+
+
+-- MV2 — Seller Performance Snapshot
+-- PURPOSE:
+-- Aggregates per-seller metrics including total orders fulfilled, total revenue,
+-- average review score, review volume, average delivery delay in days, and count
+-- of on-time deliveries. Filters to delivered orders with a non-null delivery date.
