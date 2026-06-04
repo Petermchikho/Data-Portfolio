@@ -1,9 +1,5 @@
 -- MV1 — Daily Order Summary
 
-Pre-aggregates order count, unique customer count, product revenue, freight
-revenue, and total GMV by day and order status. Serves daily KPI dashboards
-and Airflow sink tasks.
-
 DROP MATERIALIZED VIEW IF EXISTS mv_daily_order_summary;
 create materialized view mv_daily_order_summary as
 SELECT
