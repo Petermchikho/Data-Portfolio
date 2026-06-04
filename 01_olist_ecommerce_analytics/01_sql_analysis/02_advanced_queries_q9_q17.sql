@@ -242,3 +242,11 @@ LEFT JOIN olist_products p2
     ON tp.product_2 = p2.product_id
 ORDER BY tp.times_together DESC;
 
+-- 16. Which orders used more than one payment method, and what is the
+-- combined payment string, total value paid, and maximum installment count for each?
+
+
+
+with order_payment_aggs as (
+select * from olist_order_payments oop ;
+)
