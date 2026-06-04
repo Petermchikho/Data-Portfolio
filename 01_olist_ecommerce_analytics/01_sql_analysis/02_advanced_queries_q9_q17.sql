@@ -245,8 +245,51 @@ ORDER BY tp.times_together DESC;
 -- 16. Which orders used more than one payment method, and what is the
 -- combined payment string, total value paid, and maximum installment count for each?
 
-
-
-with order_payment_aggs as (
-select * from olist_order_payments oop ;
+with  distinct_payments as  (
+    select  distinct 
+        order_id,
+        payment_type
+    from  olist_order_payments oop 
+),payment_counts as  (
+    select 
+        order_id,
+        COUNT(payment_type) as  payment_methods_count
+    from  distinct_payments
+    group  by order_id
 )
+select 
+    oop.order_id,
+    STRING_AGG(payment_type, ', ') AS payment_types,
+    count(oop.payment_installments) AS maximum_installment_count,
+    sum(payment_value) AS total_payment_value,
+    count(*) over() total_orders   
+from  olist_order_payments oop 
+join  payment_counts pc on  pc.order_id = oop.order_id
+where pc.payment_methods_count > 1
+group  by  oop.order_id
+order  by oop.order_id;
+
+-- OR 
+with  payment_counts as  (
+    select 
+        order_id,
+        COUNT(distinct payment_type) as payment_methods_count
+    from olist_order_payments
+    group by  order_id
+)
+select
+    oop.order_id,
+    STRING_AGG(distinct oop.payment_type, ', ') as payment_types,
+    SUM(oop.payment_value) as total_payment_value,
+    MAX(oop.payment_installments) as maximum_installment_count,
+    count(*) over() total_orders   
+from olist_order_payments oop
+join payment_counts pc
+    on oop.order_id = pc.order_id
+where pc.payment_methods_count > 1
+group by oop.order_id
+order by oop.order_id;
+
+
+-- 17. By product category and customer state, what is the average freight
+-- value as a percentage of product price for orders with sufficient volume?
