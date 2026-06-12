@@ -115,3 +115,62 @@ CREATE UNIQUE INDEX s_mv_seller_performance
 ON mv_seller_performance(seller_id);
 
 select * from mv_seller_performance;
+
+
+-- MV3 - mv_category_monthly_revenue
+-- PURPOSE:
+-- Aggregates order count, total revenue, average item price, and average review
+-- score per product category per calendar month. English category names must
+-- be resolved via the translation lookup with COALESCE fallback
+
+drop materialized view if exists mv_category_monthly_revenue;
+create materialized view mv_category_monthly_revenue as 
+with order_items_aggs as(
+	select 
+		ooi.order_id,
+		ooi.product_id,
+		ooi.price,
+		ooi.freight_value,
+		op.product_category_name
+	from olist_order_items ooi
+	join olist_products op on ooi.product_id = op.product_id 
+), 
+reviews_aggregates as(
+	select 
+		order_id,
+		sum(review_score) as total_review_score
+	from olist_order_reviews oor 
+	group by oor.order_id 
+), order_aggregates_combined as (
+	select 
+		DATE_TRUNC('month', order_purchase_timestamp) AS month,
+		oia.order_id,
+		oia.product_id,
+		oia.price,
+		oia.freight_value,
+		oia.product_category_name,
+		ra.total_review_score 
+	from olist_orders oo left join 
+	order_items_aggs oia on  oo.order_id = oia.order_id 
+	left join reviews_aggregates ra on oo.order_id = ra.order_id 
+)
+select 
+"month" ,
+COALESCE(
+    NULLIF(opcnt.product_category_name_english, ''),
+    oag.product_category_name
+) AS category,
+count(distinct order_id) as total_orders_fulfilled, 
+sum(price) as total_revenue,
+avg(price) as average_price,
+avg(total_review_score) as average_review_score
+from order_aggregates_combined oag
+left join olist_product_category_name_translation opcnt on oag.product_category_name = opcnt.product_category_name 
+group by "month" ,category 
+order by "month";
+
+DROP INDEX IF EXISTS mc_mv_category_monthly_revenue;
+CREATE UNIQUE INDEX mc_mv_category_monthly_revenue
+ON mv_category_monthly_revenue(month, category);
+
+select * from mv_category_monthly_revenue;
