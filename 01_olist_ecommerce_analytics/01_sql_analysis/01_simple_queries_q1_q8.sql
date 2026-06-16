@@ -24,6 +24,34 @@ REFRESH MATERIALIZED VIEW CONCURRENTLY mv_order_status_summary;
 
 SELECT * FROM mv_order_status_summary;
 
+-- ============================================================
+-- ANALYSIS: Order Status Distribution
+-- Project : Olist E-Commerce Dataset | Quantify Analytics Labs
+-- Author  : Peter Mchikho
+-- ============================================================
+--
+-- OBJECTIVE
+-- Understand the composition of the order pipeline by status,
+-- measuring both volume and share of total orders.
+--
+-- KEY FINDINGS (n = 99,441 orders across 8 statuses)
+-- - 97.02% of orders were successfully delivered, signaling
+--   strong end-to-end fulfillment reliability.
+-- - Canceled (0.63%) and unavailable (0.61%) are nearly equal
+--   in volume, suggesting unavailable may precede cancellation.
+-- - Invoiced and processing (~0.30% each) reflect a thin but
+--   consistent early-pipeline backlog.
+-- - Created and approved (<0.01% combined) likely represent
+--   abandoned or stalled order sessions.
+--
+-- APPROACH
+-- A CTE aggregates order counts per status. A SUM() OVER()
+-- window function computes percentage share in a single pass,
+-- avoiding a self-join. Results are stored as a concurrently-
+-- refreshable materialized view with a unique index on
+-- order_status for fast, repeatable dashboard reads.
+-- ============================================================
+
 -- 2.What is the monthly order volume and total GMV,
 -- split between product revenue and freight revenue?
 
@@ -45,6 +73,36 @@ SELECT
 FROM order_order_items
 GROUP BY month
 ORDER BY month;
+
+-- ============================================================
+-- ANALYSIS: Monthly Order Volume and GMV Breakdown
+-- Project : Olist E-Commerce Dataset | Quantify Analytics Labs
+-- Author  : Peter Mchikho
+-- ============================================================
+--
+-- OBJECTIVE
+-- Track monthly order volume and Gross Merchandise Value (GMV),
+-- decomposed into product revenue and freight revenue, to reveal
+-- platform growth trends over time.
+--
+-- KEY FINDINGS (Sep 2016 – Aug 2018)
+-- - The platform grew from ~4 orders/month in Sep 2016 to a
+--   peak of 7,544 orders in Nov 2017, a Black Friday-driven
+--   spike that generated $1.18M GMV in a single month.
+-- - Sustained scale was reached in 2018, with monthly GMV
+--   consistently exceeding R$1M from Jan through Aug 2018.
+-- - Freight revenue averaged ~14–16% of GMV throughout,
+--   indicating a stable cost-pass-through structure.
+-- - Sep–Oct 2018 show near-zero activity, reflecting a data
+--   cutoff rather than an actual business decline.
+--
+-- APPROACH
+-- A CTE joins olist_orders to olist_order_items and truncates
+-- order_purchase_timestamp to month granularity. COALESCE
+-- handles NULLs from the LEFT JOIN (orders with no items).
+-- GMV is computed as the sum of product price and freight value,
+-- grouped by month and ordered chronologically.
+-- ============================================================
 
 -- 3.Which are the top ten product categories by total revenue, and what is the average item price per category? 
 --  English category names must be used where available.

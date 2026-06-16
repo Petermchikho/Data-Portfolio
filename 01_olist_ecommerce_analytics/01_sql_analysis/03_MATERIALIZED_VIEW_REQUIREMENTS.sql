@@ -174,3 +174,11 @@ CREATE UNIQUE INDEX mc_mv_category_monthly_revenue
 ON mv_category_monthly_revenue(month, category);
 
 select * from mv_category_monthly_revenue;
+
+-- MV4 — Customer RFM Scores
+-- Computes Recency (days since last order), Frequency (total delivered orders),
+-- and Monetary (total spend including freight) per unique customer. Assigns
+-- NTILE(5) scores for each dimension to enable RFM-based segmentation in
+-- downstream tasks.
+
+

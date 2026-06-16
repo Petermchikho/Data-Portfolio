@@ -1,0 +1,98 @@
+# ==========================
+# Python
+# ==========================
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+*.egg-info/
+.eggs/
+build/
+dist/
+pip-wheel-metadata/
+
+# ==========================
+# Virtual Environments
+# ==========================
+.venv/
+venv/
+env/
+ENV/
+
+# ==========================
+# Jupyter Notebooks
+# ==========================
+.ipynb_checkpoints/
+
+# ==========================
+# VS Code
+# ==========================
+.vscode/
+
+# ==========================
+# PyCharm
+# ==========================
+.idea/
+
+# ==========================
+# macOS
+# ==========================
+.DS_Store
+
+# ==========================
+# Windows
+# ==========================
+Thumbs.db
+Desktop.ini
+
+# ==========================
+# Environment Variables
+# ==========================
+.env
+.env.*
+!.env.example
+
+# ==========================
+# Logs
+# ==========================
+*.log
+logs/
+
+# ==========================
+# Cache
+# ==========================
+.cache/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+
+# ==========================
+# Coverage
+# ==========================
+.coverage
+coverage.xml
+htmlcov/
+
+# ==========================
+# Generated Data
+# (Keep raw data out of Git if large)
+# ==========================
+data/raw/
+data/interim/
+data/processed/
+
+
+# ==========================
+# Database Files
+# ==========================
+*.db
+*.sqlite
+*.sqlite3
+
+# ==========================
+# Temporary Files
+# ==========================
+*.tmp
+*.bak
+*.swp
+*.swo
