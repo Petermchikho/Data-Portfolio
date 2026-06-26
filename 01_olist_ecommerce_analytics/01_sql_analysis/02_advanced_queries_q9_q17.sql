@@ -91,7 +91,7 @@ WITH seller_orders AS (
         ON o.order_id = oi.order_id
     WHERE o.order_status = 'delivered'
 )
-
+select ROUND(AVG(delay_days), 2) AS avg_delay_days FROM seller_orders
 SELECT
     seller_id,
     COUNT(*) AS delivered_orders,
